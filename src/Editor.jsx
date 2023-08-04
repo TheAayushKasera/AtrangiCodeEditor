@@ -6,57 +6,54 @@ import InputLabel from "@mui/material/InputLabel";
 import TextField from "@mui/material/TextField";
 import Button from "@mui/material/Button";
 const codearray = {
-  PYTHON: "print('Hello World')",
-  cpp: "#include<iostream.h>\n#include<conio.h>\nint main(){\n\tclrscr();\n\tcout<<'Hello World';\n\treturn 0;\n}",
-  c: "#include<stdio.h>\n#include<conio.h>\nvoid main(){\n\tclrscr();\n\tprintf('Hello World');\n\tgetch();\n}",
+  python3: "print('Hello World')",
+  cpp: '#include<iostream>\nusing namespace std;\nint main(){\n\tcout<<"Hello World";\n\treturn 0;\n}',
+  c: '#include<stdio.h>\nint main(){\n\tprintf("%s","Hello World");\n\treturn(0);\n}',
   java: 'class HelloWorld {\n\tpublic static void main(String[] args) {\n\t\tSystem.out.println("Hello, World!"); \n\t}\n}',
-  javascript: "",
   ruby: "",
+  nodejs: "",
 };
 const Editor = () => {
-  const clientsecret = "50cc259290b8f66ec7260ebba9b575a2a33cf1e0";
   const [output, setoutput] = useState("");
   const [dis, setdis] = useState(true);
-  const [lan, setlan] = useState("PYTHON");
+  const [lan, setlan] = useState("python3");
   const [code, setCode] = useState(codearray[lan]);
+  const [input, setInput] = useState("");
   useEffect(() => {
     setCode(codearray[lan]);
     setdis(false);
   }, [lan]);
 
-  const fetchapi = () => {
-    fetch(
-      "https://api.hackerearth.com/v4/partner/code-evaluation/submissions/",
-      {
-        method: "POST",
-        mode: "cors",
-        headers: {
-          "Content-Type": "application/json",
-          "client-secret": clientsecret,
-        },
-        body: {
-          lang: lan,
-          source: code,
-          input: "",
-          memory_limit: 243232,
-          time_limit: 5,
-          id: "5caf2715dbc97e5c0df95787ba48b799c9b64a0a27eb.api.hackerearth.com",
-          context: "{'id': 213121}",
-          callback: "https://client.com/callback/",
-        },
-      }
-    ).then((result) => {
-      console.log("result", result);
-      result.json().then((resp) => {
-        setoutput(resp);
-        console.log(resp);
-      });
-    });
+  useEffect(() => {}, []);
+
+  const getOutput = async () => {
+    console.log(code + lan);
+    const url = "https://online-code-compiler.p.rapidapi.com/v1/";
+    const options = {
+      method: "POST",
+      headers: {
+        "content-type": "application/json",
+        "X-RapidAPI-Key": "9f95586619mshde98c09704990f8p1a725ajsn38058181642a",
+        "X-RapidAPI-Host": "online-code-compiler.p.rapidapi.com",
+      },
+      body: JSON.stringify({
+        language: lan,
+        version: "latest",
+        code: code,
+        input: input,
+      }),
+    };
+
+    try {
+      const response = await fetch(url, options);
+      const result = await response.json();
+      console.log(result.output);
+      setoutput(result.output);
+    } catch (error) {
+      console.error(error);
+    }
   };
 
-  useEffect(() => {
-    fetchapi();
-  }, []);
   return (
     <>
       <FormControl
@@ -75,14 +72,15 @@ const Editor = () => {
           value={lan}
           onChange={(e) => {
             setlan(e.target.value);
+            setoutput("");
           }}
         >
-          <MenuItem value={"PYTHON"}>Python</MenuItem>
+          <MenuItem value={"python3"}>Python</MenuItem>
           <MenuItem value={"cpp"}>C++</MenuItem>
           <MenuItem value={"c"}>C</MenuItem>
           <MenuItem value={"ruby"}>Ruby</MenuItem>
           <MenuItem value={"java"}>Java</MenuItem>
-          <MenuItem value={"javascript"}>JavaScript</MenuItem>
+          <MenuItem value={"nodejs"}>NodeJS</MenuItem>
         </Select>
       </FormControl>
       <TextField
@@ -101,16 +99,54 @@ const Editor = () => {
         label="Playground"
         multiline
       />
-      <Button
-        variant="contained"
-        size="large"
-        sx={{ margin: "2%", marginLeft: "89%", fontSize: "20px" }}
-        onClick={() => {
-          console.log(code);
+      <div
+        style={{
+          display: "flex",
+          justifyContent: "space-between",
+          margin: "2vh auto 2vh auto",
+          width: "90%",
         }}
       >
-        Run
-      </Button>
+        <TextField
+          minRows={5}
+          value={input}
+          disabled={dis}
+          onChange={(e) => {
+            setInput(e.target.value);
+          }}
+          sx={{
+            width: "60%",
+          }}
+          label="Input"
+          multiline
+        />
+        <Button
+          variant="contained"
+          size="large"
+          sx={{ margin: "auto 2vw auto auto", fontSize: "20px" }}
+          onClick={getOutput}
+        >
+          Run
+        </Button>
+      </div>
+      <h4 style={{ margin: "auto auto 0.5vh auto", width: "90%" }}>Output:-</h4>
+      <div
+        style={{
+          margin: "auto auto 2vh auto",
+
+          minHeight: "20vh",
+          wordWrap: "break-word",
+          whiteSpace: "pre-line",
+          boxShadow: "0 0 10px rgba(0, 0, 0, 0.1)",
+          transition: "box-shadow 0.3s ease",
+          border: "1px solid rgb(196 196 196)",
+          padding: "1%",
+          width: "90%",
+          boxSizing: "border-box",
+        }}
+      >
+        {output}
+      </div>
     </>
   );
 };
